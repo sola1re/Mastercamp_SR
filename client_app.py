@@ -5,9 +5,6 @@ from tkinter import messagebox, scrolledtext, simpledialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
-##### Mastercamp - 2024 - EFREI
-##### Clients' side (Run from Main.py)
-
 class ClientApp:
     def __init__(self, root):
         self.root = root
@@ -37,6 +34,15 @@ class ClientApp:
 
         self.add_server_button = ttk.Button(self.server_frame, text="Ajouter Serveur", command=self.add_server_dialog)
         self.add_server_button.pack(pady=10)
+
+        # Options frame
+        self.options_frame = ttk.Frame(self.chat_frame, padding="10")
+        self.options_frame.pack(fill=tk.X, pady=(0, 10))
+
+        self.chat_button = ttk.Button(self.options_frame, text="Chat", command=self.select_chat, bootstyle="info")
+        self.call_button = ttk.Button(self.options_frame, text="Appel", command=self.select_call, bootstyle="info")
+        self.games_button = ttk.Button(self.options_frame, text="Jeux", command=self.select_games, bootstyle="info")
+        self.file_button = ttk.Button(self.options_frame, text="Fichiers", command=self.select_file, bootstyle="info")
 
         # Chat area
         ttk.Label(self.chat_frame, text="Chat", bootstyle="info").pack(anchor=tk.W)
@@ -69,7 +75,6 @@ class ClientApp:
         if self.server_ip:
             self.previous_servers.append(self.server_ip)
             self.update_server_list()
-            self.connect_to_server()
 
     def update_server_list(self):
         self.server_tree.delete(*self.server_tree.get_children())
@@ -88,7 +93,32 @@ class ClientApp:
             else:
                 self.is_notes_server = False
                 self.server_ip = server
-                self.connect_to_server()
+
+            self.show_options()
+
+    def show_options(self):
+        # Clear previous buttons
+        for widget in self.options_frame.winfo_children():
+            widget.pack_forget()
+
+        # Add option buttons
+        self.chat_button.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
+        self.call_button.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
+        self.games_button.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
+        self.file_button.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
+
+    def select_chat(self):
+        self.connect_to_server()
+        # Add more chat specific logic if needed
+
+    def select_call(self):
+        messagebox.showinfo("Info", "Fonction Appel non implémentée")
+
+    def select_games(self):
+        messagebox.showinfo("Info", "Fonction Jeux non implémentée")
+    
+    def select_file(self):
+        messagebox.showinfo("Info", "Dépot de fichiers non implémentée")
 
     def connect_to_server(self):
         if not self.server_ip:
