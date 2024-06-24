@@ -5,17 +5,15 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
-SERVER_HOST = "127.0.0.1"
-SERVER_PORT = 5001
 BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
 
-def send_file(file_path):
+def send_file(file_path, server_host, server_port):
     file_size = os.path.getsize(file_path)
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print(f"[+] Connecting to {SERVER_HOST}:{SERVER_PORT}")
-    client_socket.connect((SERVER_HOST, SERVER_PORT))
+    print(f"[+] Connecting to {server_host}:{server_port}")
+    client_socket.connect((server_host, server_port))
     print("[+] Connected.")
 
     client_socket.send(f"{file_path}{SEPARATOR}{file_size}".encode())
@@ -33,16 +31,26 @@ def send_file(file_path):
 
 def drop(event):
     file_path = event.data
-    send_file(file_path)
+    send_file(file_path, server_host_entry.get(), int(server_port_entry.get()))
 
 def select_file():
     file_path = filedialog.askopenfilename()
     if file_path:
-        send_file(file_path)
+        send_file(file_path, server_host_entry.get(), int(server_port_entry.get()))
 
 root = TkinterDnD.Tk()
 root.title("File Upload")
-root.geometry("400x200")
+root.geometry("400x250")
+
+tk.Label(root, text="Server IP:").pack(pady=5)
+server_host_entry = tk.Entry(root)
+server_host_entry.pack(pady=5)
+server_host_entry.insert(0, "127.0.0.1")
+
+tk.Label(root, text="Server Port:").pack(pady=5)
+server_port_entry = tk.Entry(root)
+server_port_entry.pack(pady=5)
+server_port_entry.insert(0, "5001")
 
 button = tk.Button(root, text="Drag and drop a file here or click to select", width=50, height=10, relief="solid", command=select_file)
 button.pack(pady=20)
