@@ -3,8 +3,9 @@ import tqdm
 import os
 from threading import Thread
 
-# Secure key exchange
+# Secure key exchange (hash)
 # Retransmit file to ip addr of client 2
+# espace partagé où
 
 BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
