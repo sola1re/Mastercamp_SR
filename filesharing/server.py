@@ -1,68 +1,60 @@
 import socket
 import tqdm
-import os
 from threading import Thread
-
-# Secure key exchange (hash)
-# Retransmit file to ip addr of client 2
-# espace partagé où
+import os
 
 BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
 
-UPLOAD_FOLDER = './uploads'
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+clients = []
 
 def handle_client(client_socket, address):
+    clients.append(client_socket)
     print(f"[+] {address} is connected.")
 
-    received = client_socket.recv(BUFFER_SIZE).decode()
-    file_name, file_size = received.split(SEPARATOR)
-    file_name = os.path.basename(file_name)
-    file_size = int(file_size)
-
-    file_path = os.path.join(UPLOAD_FOLDER, file_name)
-
-    progress = tqdm.tqdm(range(file_size), f"Receiving {file_name}", unit="B", unit_scale=True, unit_divisor=1024)
-    with open(file_path, "wb") as f:
+    try:
         while True:
-            bytes_read = client_socket.recv(BUFFER_SIZE)
-            if not bytes_read:
+            received = client_socket.recv(BUFFER_SIZE).decode()
+            if not received:
                 break
-            f.write(bytes_read)
-            progress.update(len(bytes_read))
+            file_name, file_size = received.split(SEPARATOR)
+            file_name = os.path.basename(file_name)
+            file_size = int(file_size)
 
-    client_socket.close()
+            print(f"Receiving {file_name} of size {file_size} bytes from {address}")
+            
+            progress = tqdm.tqdm(range(file_size), f"Receiving {file_name}", unit="B", unit_scale=True, unit_divisor=1024)
 
-    # Retransmit file to another client
-    retransmit_file(file_path)
+            # Inform all other clients about the incoming file
+            for client in clients:
+                if client != client_socket:
+                    client.send(f"{file_name}{SEPARATOR}{file_size}".encode())
 
-def retransmit_file(file_path):
-    recipient_ip = input("Enter recipient IP address: ")
-    recipient_port = int(input("Enter recipient port: "))
-    file_size = os.path.getsize(file_path)
+            # Receive the file data
+            file_path = os.path.join('./filesharing', 'uploads', file_name)
+            with open(file_path, "wb") as f:
+                while True:
+                    bytes_read = client_socket.recv(BUFFER_SIZE)
+                    if not bytes_read:
+                        break
+                    f.write(bytes_read)
+                    progress.update(len(bytes_read))
+            
+            # Notify successful reception
+            print(f"Received {file_name} from {address}")
 
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((recipient_ip, recipient_port))
-    client_socket.send(f"{file_path}{SEPARATOR}{file_size}".encode())
-
-    progress = tqdm.tqdm(range(file_size), f"Sending {file_path}", unit="B", unit_scale=True, unit_divisor=1024)
-    with open(file_path, "rb") as f:
-        while True:
-            bytes_read = f.read(BUFFER_SIZE)
-            if not bytes_read:
-                break
-            client_socket.sendall(bytes_read)
-            progress.update(len(bytes_read))
-
-    client_socket.close()
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        client_socket.close()
+        clients.remove(client_socket)
+        print(f"[-] {address} is disconnected.")
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((SERVER_HOST, SERVER_PORT))
+    server_socket.bind(("0.0.0.0", 5001))
     server_socket.listen(5)
-    print(f"[*] Listening as {SERVER_HOST}:{SERVER_PORT}")
+    print(f"[*] Listening as {'0.0.0.0'}:{5001}")
 
     while True:
         client_socket, address = server_socket.accept()
@@ -70,7 +62,4 @@ def start_server():
         client_handler.start()
 
 if __name__ == "__main__":
-    SERVER_HOST = "0.0.0.0"
-    SERVER_PORT = 5001
-
     start_server()

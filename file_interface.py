@@ -19,3 +19,12 @@ receiver_button = tk.Button(root, text="Receive Files", width=20, height=2, comm
 receiver_button.pack(pady=10)
 
 root.mainloop()
+
+################################################### Notes ###################################################
+'''
+- Add Secure connection (hashes to check authenticity and secure connection)
+- Common file space (with access rights (eyfeline's database), read, edit/write, execute)
+    - Send server, then transmit to everyone (2 steps)
+- Encrypt symetric key with RSA and send it to db
+
+'''
