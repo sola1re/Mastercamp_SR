@@ -46,6 +46,18 @@ FOREIGN KEY(ID_channel) REFERENCES channels(ID_channel)
 )
 ''')
 
+# Create authorized_users table
+cursor.execute('''
+CREATE TABLE authorized_users(
+   ID_user INTEGER NOT NULL,
+   ID_channel INTEGER NOT NULL,
+   role INT NOT NULL,
+   PRIMARY KEY(ID_user, ID_channel),
+   FOREIGN KEY(ID_user) REFERENCES users(ID_user),
+   FOREIGN KEY(ID_channel) REFERENCES channels(ID_channel)
+)
+''')
+
 # Create the logs table
 cursor.execute('''
 CREATE TABLE logs(
