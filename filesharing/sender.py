@@ -1,75 +1,80 @@
 import socket
-import tqdm
+import hashlib
 import os
+import tqdm
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 from tkinterdnd2 import DND_FILES, TkinterDnD
-from cryptography.fernet import Fernet
+import hashlib
 
 BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
+SERVER_IP = "127.0.0.1"
+SERVER_PORT = 5001
 
-# Symmetric key
-encryption_key = b'CA-US2W09BNIb_pw2Afimoey6HrU3CMh38jGNut01qg='
+######### Hash
+def hash_file(file_path):
+    sha256 = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        for byte_block in iter(lambda: f.read(BUFFER_SIZE), b""):
+            sha256.update(byte_block)
+    return sha256.hexdigest()
 
-def encrypt_file(file_path, key):
-    fernet = Fernet(key)
-    with open(file_path, "rb") as file:
-        file_data = file.read()
-    encrypted_data = fernet.encrypt(file_data)
-    encrypted_file_path = file_path + ".enc"
-    with open(encrypted_file_path, "wb") as file:
-        file.write(encrypted_data)
-    return encrypted_file_path
 
 def send_file(file_path, server_host, server_port):
-    encrypted_file_path = encrypt_file(file_path, encryption_key)
-    file_size = os.path.getsize(encrypted_file_path)
+    file_name = os.path.basename(file_path)
+    file_size = os.path.getsize(file_path)
+    file_hash = hash_file(file_path)
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print(f"[+] Connecting to {server_host}:{server_port}")
-    client_socket.connect((server_host, server_port))
-    print("[+] Connected.")
+    
+    try:
+        client_socket.connect((server_host, server_port))
+        metadata = f"{file_name}{SEPARATOR}{file_size}{SEPARATOR}{file_hash}"
+        client_socket.send(metadata.encode())
 
-    client_socket.send(f"{os.path.basename(encrypted_file_path)}{SEPARATOR}{file_size}".encode())
+        with open(file_path, "rb") as f:
+            progress = tqdm.tqdm(range(file_size), f"Sending {file_name}", unit="B", unit_scale=True, unit_divisor=1024)
+            while True:
+                bytes_read = f.read(BUFFER_SIZE)
+                if not bytes_read:
+                    break
+                client_socket.sendall(bytes_read)
+                progress.update(len(bytes_read))
+            progress.close()
 
-    progress = tqdm.tqdm(range(file_size), f"Sending {encrypted_file_path}", unit="B", unit_scale=True, unit_divisor=1024)
-    with open(encrypted_file_path, "rb") as f:
-        while True:
-            bytes_read = f.read(BUFFER_SIZE)
-            if not bytes_read:
-                break
-            client_socket.sendall(bytes_read)
-            progress.update(len(bytes_read))
+        print(f"File {file_name} sent successfully.")
+    
+    except Exception as e:
+        print(f"Error sending file {file_name}: {e}")
+    finally:
+        client_socket.close()
 
-    client_socket.close()
-    os.remove(encrypted_file_path)  # Remove the encrypted file after sending
 
 def drop(event):
-    file_path = event.data
-    send_file(file_path, server_host_entry.get(), int(server_port_entry.get()))
+    file_path = event.data.strip("{}")
+    send_file(file_path, SERVER_IP, SERVER_PORT)
 
 def select_file():
     file_path = filedialog.askopenfilename()
     if file_path:
-        send_file(file_path, server_host_entry.get(), int(server_port_entry.get()))
+        send_file(file_path, SERVER_IP, SERVER_PORT)
+
+
+
+def return_to_menu():
+    root.destroy()
+    os.system("python ./file_interface.py")
 
 root = TkinterDnD.Tk()
 root.title("File Upload")
 root.geometry("400x250")
 
-tk.Label(root, text="Server IP:").pack(pady=5)
-server_host_entry = tk.Entry(root)
-server_host_entry.pack(pady=5)
-server_host_entry.insert(0, "127.0.0.1")
-
-tk.Label(root, text="Server Port:").pack(pady=5)
-server_port_entry = tk.Entry(root)
-server_port_entry.pack(pady=5)
-server_port_entry.insert(0, "5001")
+return_button = tk.Button(root, text="Return", command=return_to_menu)
+return_button.place(x=350, y=10)
 
 button = tk.Button(root, text="Drag and drop a file here or click to select", width=50, height=10, relief="solid", command=select_file)
-button.pack(pady=20)
+button.pack(pady=50)
 
 button.drop_target_register(DND_FILES)
 button.dnd_bind('<<Drop>>', drop)
