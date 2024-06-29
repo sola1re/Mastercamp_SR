@@ -1,106 +1,102 @@
 import socket
-import tqdm
-import os
-from threading import Thread
 import tkinter as tk
-from tkinter import messagebox
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import unpad
+from tkinter import messagebox, filedialog
+import os
 
 BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
+SERVER_IP = "127.0.0.1"
+SERVER_PORT = 5001
 
-UPLOAD_FOLDER = './filesharing/uploads'
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-LOG_PATH = './filesharing/received.log'
-
-KEY = b'CA-US2W09BNIb_pw2Afimoey6HrU3CMh38jGNut01qg='  # This should match the encryption key used by the sender
-
-def decrypt_file(file_path, key):
+def list_files():
     try:
-        with open(file_path, 'rb') as f:
-            iv = f.read(16)  # Read the IV from the file
-            cipher = AES.new(key, AES.MODE_CBC, iv)
-            ciphertext = f.read()
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((SERVER_IP, SERVER_PORT))
 
-        decrypted_data = unpad(cipher.decrypt(ciphertext), AES.block_size)
-        
-        # Save the decrypted data to a file
-        decrypted_file_path = file_path.replace('.enc', '')
-        with open(decrypted_file_path, 'wb') as f:
-            f.write(decrypted_data)
-        
-        # Remove the original encrypted file
-        os.remove(file_path)
-        return decrypted_file_path
+        request = "LIST_FILES"
+        client_socket.send(request.encode())
+
+        files_received = client_socket.recv(BUFFER_SIZE).decode()
+
+        client_socket.close()
+
+        files_list = files_received.split('\n')
+        file_listbox.delete(0, tk.END)
+        for file_name in files_list:
+            if file_name.strip():
+                file_listbox.insert(tk.END, file_name)
+
     except Exception as e:
-        print(f"Error decrypting file {file_path}: {e}")
-        return None
+        messagebox.showerror("Error", f"Error while listing files: {e}")
+        
+def select_file():
+    selected_file = file_listbox.get(tk.ACTIVE)
+    if not selected_file:
+        messagebox.showerror("Error", "Please select a file.")
+        return
 
-def receive_file(client_socket, update_ui_callback):
     try:
-        while True:
-            received = client_socket.recv(BUFFER_SIZE).decode()
-            if not received:
-                break
-            file_name, file_size = received.split(SEPARATOR)
-            file_name = os.path.basename(file_name)
-            file_size = int(file_size)
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((SERVER_IP, SERVER_PORT))
 
-            file_path = os.path.join(UPLOAD_FOLDER, file_name)
-            progress = tqdm.tqdm(range(file_size), f"Receiving {file_name}", unit="B", unit_scale=True, unit_divisor=1024)
-            with open(file_path, "wb") as f:
-                while True:
-                    bytes_read = client_socket.recv(BUFFER_SIZE)
-                    if not bytes_read:
-                        break
-                    f.write(bytes_read)
-                    progress.update(len(bytes_read))
-            
-            decrypted_file_path = decrypt_file(file_path, KEY)
-            if decrypted_file_path:
-                log_received_file(decrypted_file_path)
-                update_ui_callback(decrypted_file_path)
+        client_socket.send(selected_file.encode())
+
+        received = client_socket.recv(BUFFER_SIZE).decode()
+
+        if received == "FILE_NOT_FOUND":
+            messagebox.showerror("Error", f"File '{selected_file}' not found on server.")
+            return
+
+        if SEPARATOR not in received:
+            messagebox.showerror("Error", "Received data format error.")
+            return
+
+        parts = received.split(SEPARATOR)
+        file_name = parts[0].strip()
+        file_size = int(parts[1].strip())
+
+        # Ask user for save path
+        save_path = filedialog.asksaveasfilename(initialfile=file_name, defaultextension=".*", filetypes=[("All Files", "*.*")])
+        if not save_path:
+            client_socket.close()
+            return
+
+        # Download the file
+        with open(save_path, "wb") as f:
+            total_received = 0
+            while total_received < file_size:
+                bytes_read = client_socket.recv(min(BUFFER_SIZE, file_size - total_received))
+                if not bytes_read:
+                    break
+                f.write(bytes_read)
+                total_received += len(bytes_read)
+
+        messagebox.showinfo("Success", f"File {file_name} saved successfully.")
+
     except Exception as e:
-        print(f"Error receiving file: {e}")
+        messagebox.showerror("Error", f"Error while downloading file: {e}")
+
     finally:
         client_socket.close()
 
-def log_received_file(file_path):
-    with open(LOG_PATH, "a") as log_file:
-        log_file.write(f"Received and decrypted file: {file_path}\n")
-    print(f"Logged received file: {file_path}")
+def return_to_menu():
+    root.destroy()
+    os.system("python ./file_interface.py")
 
-def start_receiver(update_ui_callback):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((SERVER_HOST, SERVER_PORT))
-    receive_file(client_socket, update_ui_callback)
+root = tk.Tk()
+root.title("File Receiver")
+root.geometry("450x300")
 
-def start_receiver_thread(update_ui_callback):
-    receiver_thread = Thread(target=start_receiver, args=(update_ui_callback,))
-    receiver_thread.daemon = True
-    receiver_thread.start()
+file_listbox = tk.Listbox(root, selectmode=tk.SINGLE, width=50, height=10)
+file_listbox.pack(pady=20)
 
-def on_file_received(file_path):
-    messagebox.showinfo("File Received", f"Received and decrypted file: {file_path}")
+list_files_button = tk.Button(root, text="List Files", command=list_files)
+list_files_button.pack()
 
-# GUI setup
-def setup_gui():
-    root = tk.Tk()
-    root.title("File Receiver")
-    root.geometry("300x100")
-    
-    label = tk.Label(root, text="Waiting for files...")
-    label.pack(pady=20)
-    
-    start_receiver_thread(on_file_received)
-    
-    root.mainloop()
+select_file_button = tk.Button(root, text="Select File", command=select_file)
+select_file_button.pack()
 
-if __name__ == "__main__":
-    SERVER_HOST = "127.0.0.1"  # server's IP address
-    SERVER_PORT = 5001
+return_button = tk.Button(root, text="Return", command=return_to_menu)
+return_button.place(x=400, y=10)
 
-    setup_gui()
+root.mainloop()
