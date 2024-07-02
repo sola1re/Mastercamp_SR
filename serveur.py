@@ -8,44 +8,7 @@ import os
 channels = {}
 
 def init_db():
-    conn = sqlite3.connect('server_database.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS channels (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE,
-            password TEXT,
-            members TEXT DEFAULT '{}'
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            channel TEXT NOT NULL,
-            message TEXT NOT NULL,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS authorized_users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            channel_id INTEGER,
-            role INTEGER,
-            FOREIGN KEY(user_id) REFERENCES users(id),
-            FOREIGN KEY(channel_id) REFERENCES channels(id)
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    pass
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -72,10 +35,14 @@ def register(username, password):
     conn = sqlite3.connect('server_database.db')
     cursor = conn.cursor()
     try:
+        
         cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hash_password(password)))
+
         conn.commit()
+
         return True
     except sqlite3.IntegrityError:
+        print("no")
         return False
     finally:
         conn.close()
@@ -85,7 +52,7 @@ def create_channel(name, password, creator_username):
     cursor = conn.cursor()
     try:
         # Vérifiez si l'utilisateur existe
-        cursor.execute('SELECT id FROM users WHERE username=?', (creator_username,))
+        cursor.execute('SELECT ID_user FROM users WHERE username=?', (creator_username,))
         user = cursor.fetchone()
         if user is None:
             print(f"User '{creator_username}' not found")
@@ -99,7 +66,7 @@ def create_channel(name, password, creator_username):
         print("Channel inserted")
 
         # Récupérez l'ID du canal nouvellement créé
-        cursor.execute('SELECT id FROM channels WHERE name=?', (name,))
+        cursor.execute('SELECT ID_channel FROM channels WHERE name=?', (name,))
         channel = cursor.fetchone()
         if channel is None:
             print(f"Channel '{name}' not found after insertion")
@@ -108,7 +75,7 @@ def create_channel(name, password, creator_username):
         print(f"channel_id: {channel_id}")
 
         # Insérez l'utilisateur créateur avec le rôle administrateur dans authorized_users
-        cursor.execute('INSERT INTO authorized_users (user_id, channel_id, role) VALUES (?, ?, ?)', (user_id, channel_id, 1))
+        cursor.execute('INSERT INTO authorized_users (ID_user, ID_channel, role) VALUES (?, ?, ?)', (user_id, channel_id, 1))
         conn.commit()
         print("Authorized user inserted")
         dossier=f"file_interface/{name}/"
@@ -130,12 +97,15 @@ def join_channel(name, password, username):
     channel = cursor.fetchone()
     if channel:
         channel_id=channel[0]
-        cursor.execute('SELECT id FROM users WHERE username=?', (username,))
+        
+        cursor.execute('SELECT ID_user FROM users WHERE username=?', (username,))
         user = cursor.fetchone()
         user_id = user[0]
-        cursor.execute('SELECT role FROM authorized_users WHERE user_id=? AND channel_id=?', (user_id, channel_id))
+        cursor.execute('SELECT role FROM authorized_users WHERE ID_user=? AND ID_channel=?', (user_id, channel_id))
         #cursor.execute('SELECT * FROM authorized_users ')
         role = cursor.fetchone()
+        print("channel role")
+        print(channel,role)
         if role!=None:
             conn.close()
             return channel, role[0]  # Retourne le canal et le rôle de l'utilisateur
@@ -145,7 +115,7 @@ def join_channel(name, password, username):
 def get_channel_id(channel_name):
     conn = sqlite3.connect('server_database.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT id FROM channels WHERE name=?', (channel_name,))
+    cursor.execute('SELECT ID_channel FROM channels WHERE name=?', (channel_name,))
     channel_id = cursor.fetchone()
     conn.close()
     return channel_id[0] if channel_id else None
@@ -153,7 +123,7 @@ def get_channel_id(channel_name):
 def get_user_id(username):
     conn = sqlite3.connect('server_database.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT id FROM users WHERE username=?', (username,))
+    cursor.execute('SELECT ID_user FROM users WHERE username=?', (username,))
     user_id = cursor.fetchone()
     conn.close()
     return user_id[0] if user_id else None
@@ -165,7 +135,7 @@ def add_user_to_channel(username, channel_name, role):
     channel_id = get_channel_id(channel_name)
     if user_id and channel_id:
         try:
-            cursor.execute('INSERT INTO authorized_users (user_id, channel_id, role) VALUES (?, ?, ?)', (user_id, channel_id, role))
+            cursor.execute('INSERT INTO authorized_users (ID_user, ID_channel, role) VALUES (?, ?, ?)', (user_id, channel_id, role))
             conn.commit()
             print("user has been added")
             return True
@@ -181,7 +151,7 @@ def erase_users(username, channel):
     channel_id = get_channel_id(channel)
     if user_id and channel_id:
         try:
-            cursor.execute('DELETE FROM authorized_users WHERE user_id=? AND channel_id=?', (user_id, channel_id))
+            cursor.execute('DELETE FROM authorized_users WHERE ID_user=? AND ID_channel=?', (user_id, channel_id))
             conn.commit()
             print("user has been erased")
             return True
@@ -196,7 +166,10 @@ def erase_users(username, channel):
 def get_channel_history(name):
     conn = sqlite3.connect('server_database.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM messages WHERE channel=? ORDER BY timestamp ASC', (name,))
+
+    cursor.execute('SELECT ID_channel FROM channels WHERE name=?', (name,))
+    channel_id = cursor.fetchone()
+    cursor.execute('SELECT * FROM messages WHERE ID_channel=? ORDER BY timestamp ASC', (channel_id[0],))
     messages = cursor.fetchall()
     conn.close()
     return messages
@@ -204,9 +177,13 @@ def get_channel_history(name):
 def save_message(username, channel, message):
     conn = sqlite3.connect('server_database.db')
     cursor = conn.cursor()
+    user_id=get_user_id(username)
+    channel_id=get_channel_id(channel)
+    print(user_id,channel_id)
     cursor.execute('''
-        INSERT INTO messages (username, channel, message) VALUES (?, ?, ?)
-    ''', (username, channel, message))
+        INSERT INTO messages (ID_user, ID_channel, content,type) VALUES (?, ?, ?, 1)
+    ''', (user_id, channel_id, message))
+    print("yes")
     conn.commit()
     conn.close()
 
@@ -347,19 +324,26 @@ def handle_client(client_socket):
                 # Check if channel exists and password matches
                 channel = join_channel(channel_name, password, username)
                 if channel[0]:
+                    
                     if channel_name not in channels:
                         channels[channel_name] = []
                     channels[channel_name].append(client_socket)
 
                     # Send channel join success message and history to client
                     history = get_channel_history(channel_name)
-                    
-                    history_messages = [{"username": msg[1], "message": msg[3]} for msg in history]
+                    history_messages=[]
+                    conn = sqlite3.connect('server_database.db')
+                    cursor = conn.cursor()
+                    for msg in history:
+                        cursor.execute('SELECT username FROM users WHERE ID_user=?', (msg[3],))
+                        user_id = cursor.fetchone()
+                        history_messages.append({"username": user_id[0], "message": msg[1]}) 
+                    conn.close()
                     response = {
                         "status": "success",
                         "message": f"Successfully joined channel {channel_name}!",
                         "history": history_messages,
-                        "role":channel[1    ]
+                        "role":channel[1]
                     }
                 else:
                     response = {
@@ -376,14 +360,20 @@ def handle_client(client_socket):
             
             elif action == "get_new_messages":
                 channel_name = data.get("channel_name")
-                last_message_id = data.get("last_message_id", 0)
 
                 history = get_channel_history(channel_name)
-                history_messages = [{"username": msg[1], "message": msg[3],"id": msg[0]} for msg in history]
+                history_messages=[]
+                conn = sqlite3.connect('server_database.db')
+                cursor = conn.cursor()
+                for msg in history:
+                    cursor.execute('SELECT username FROM users WHERE ID_user=?', (msg[3],))
+                    user_id = cursor.fetchone()
+                    history_messages.append({"username": user_id[0], "message": msg[1]}) 
                 response = {
                     "status": "success",
                     "messages": history_messages
                 }
+                conn.close()
                 client_socket.sendall(json.dumps(response).encode())
 
             elif action == "add_user_to_channel":

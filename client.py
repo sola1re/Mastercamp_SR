@@ -226,21 +226,21 @@ class ChatApp:
         self.text_area.config(state=tk.DISABLED)
         self.text_area.pack()
 
+        self.file_button=tk.Button(self.root, text="Fichier", command=self.file_button)
+        self.file_button.pack()
+
         if self.role==1 or self.role==3:
-            self.message_entry = tk.Entry(self.root, width=38)
+            self.message_entry = tk.Entry(self.root)
             self.message_entry.pack()
             self.send_button = tk.Button(self.root, text="Envoyer", command=self.send_message)
             self.send_button.pack()
-
-        self.file_button = tk.Button(self.root, text="Fichier", command=self.file_button)
-        self.file_button.place(x=680, y=400)
         
-        self.logout_button = tk.Button(self.root, text="Se déconnecter", command=self.logout)
-        self.logout_button.place(x=680, y=430)
+        self.logout_button = tk.Button(self.root, text="Logout", command=self.logout)
+        self.logout_button.pack()
 
         if self.role==1:
             self.gestion_button = tk.Button(self.root, text="Gerer le canal", command=self.gestion)
-            self.gestion_button.place(x=680, y=460)
+            self.gestion_button.pack()
         
         self.socket = None
         self.connect()
@@ -367,7 +367,6 @@ class ChatApp:
                             if msg not in msglist:
                                 msglist.append(msg)
                                 self.text_area.insert(tk.END, f"{msg['username']}:{msg['message']}\n")
-                                self.last_message_id += 1
                     self.text_area.config(state=tk.DISABLED)
             except Exception as e:
                 break
