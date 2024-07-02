@@ -26,14 +26,13 @@ def hash_file(file_path):
 class SenderApp():
     def __init__(self,channel,role):
         self.channel=channel
-        self.role = role    # ajouter
         self.root = TkinterDnD.Tk()
         self.root.title("CrytoChat")
         self.root.geometry("400x250")
         self.root.iconbitmap("./file_interface/logo.ico")
         self.root.resizable(width=False, height=False)
         self.root.configure(bg='#74abdc')
-
+        
         self.return_button = tk.Button(self.root, text="Retour", command=self.return_to_menu)
         self.return_button.place(x=350, y=10)
         
