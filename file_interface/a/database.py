@@ -79,7 +79,7 @@ END;
 cursor.execute('''
 CREATE TRIGGER user_update AFTER UPDATE ON users
 BEGIN
-    INSERT INTO logs (Action, Data) VALUES ('User updated', 
+    INSERT INTO logs (Action, Data) VALUES ('User updated',
         'Old: ID_user=' || OLD.ID_user || ', Pseudo=' || OLD.Pseudo || ', Password=' || OLD.Password ||
         '; New: ID_user=' || NEW.ID_user || ', Pseudo=' || NEW.Pseudo || ', Password=' || NEW.Password);
 END;
@@ -103,7 +103,7 @@ END;
 cursor.execute('''
 CREATE TRIGGER channel_update AFTER UPDATE ON channels
 BEGIN
-    INSERT INTO logs (Action, Data) VALUES ('Channel updated', 
+    INSERT INTO logs (Action, Data) VALUES ('Channel updated',
         'Old: ID_channel=' || OLD.ID_channel || ', Name=' || OLD.Name || ', Password=' || OLD.Password ||
         '; New: ID_channel=' || NEW.ID_channel || ', Name=' || NEW.Name || ', Password=' || NEW.Password);
 END;
@@ -127,7 +127,7 @@ END;
 cursor.execute('''
 CREATE TRIGGER message_update AFTER UPDATE ON messages
 BEGIN
-    INSERT INTO logs (Action, Data) VALUES ('Message updated', 
+    INSERT INTO logs (Action, Data) VALUES ('Message updated',
         'Old: ID_message=' || OLD.ID_message || ', Content=' || OLD.Content || ', Type=' || OLD.Type || ', ID_user=' || OLD.ID_user || ', ID_channel=' || OLD.ID_channel ||
         '; New: ID_message=' || NEW.ID_message || ', Content=' || NEW.Content || ', Type=' || NEW.Type || ', ID_user=' || NEW.ID_user || ', ID_channel=' || NEW.ID_channel);
 END;
