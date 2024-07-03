@@ -82,7 +82,7 @@ END;
 cursor.execute('''
 CREATE TRIGGER user_update AFTER UPDATE ON users
 BEGIN
-    INSERT INTO logs (action, data) VALUES ('User updated', 
+    INSERT INTO logs (action, data) VALUES ('User updated',
         'Old: ID_user=' || OLD.ID_user || ', username=' || OLD.username || ', Password=' || OLD.Password ||
         '; New: ID_user=' || NEW.ID_user || ', username=' || NEW.username || ', Password=' || NEW.Password);
 END;
@@ -106,7 +106,7 @@ END;
 cursor.execute('''
 CREATE TRIGGER channel_update AFTER UPDATE ON channels
 BEGIN
-    INSERT INTO logs (action, data) VALUES ('Channel updated', 
+    INSERT INTO logs (action, data) VALUES ('Channel updated',
         'Old: ID_channel=' || OLD.ID_channel || ', Name=' || OLD.name || ', Password=' || OLD.password ||
         '; New: ID_channel=' || NEW.ID_channel || ', Name=' || NEW.name || ', Password=' || NEW.password);
 END;
@@ -130,7 +130,7 @@ END;
 cursor.execute('''
 CREATE TRIGGER message_update AFTER UPDATE ON messages
 BEGIN
-    INSERT INTO logs (action, data) VALUES ('Message updated', 
+    INSERT INTO logs (action, data) VALUES ('Message updated',
         'Old: ID_message=' || OLD.ID_message || ', Content=' || OLD.Content || ', Type=' || OLD.Type || ', ID_user=' || OLD.ID_user || ', ID_channel=' || OLD.ID_channel || ', Timestamp=' || OLD.timestamp ||
         '; New: ID_message=' || NEW.ID_message || ', Content=' || NEW.Content || ', Type=' || NEW.Type || ', ID_user=' || NEW.ID_user || ', ID_channel=' || NEW.ID_channel || ', Timestamp=' || NEW.timestamp);
 END;
@@ -154,7 +154,7 @@ END;
 cursor.execute('''
 CREATE TRIGGER authorized_user_update AFTER UPDATE ON authorized_users
 BEGIN
-    INSERT INTO logs (action, data) VALUES ('Authorized user updated', 
+    INSERT INTO logs (action, data) VALUES ('Authorized user updated',
         'Old: ID_user=' || OLD.ID_user || ', ID_channel=' || OLD.ID_channel || ', Role=' || OLD.role ||
         '; New: ID_user=' || NEW.ID_user || ', ID_channel=' || NEW.ID_channel || ', Role=' || NEW.role);
 END;
