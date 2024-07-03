@@ -1,14 +1,12 @@
 import tkinter as tk
 from tkinter import messagebox, scrolledtext, PhotoImage
 from tkinter import *
-from PIL import Image, ImageTk, ImageFilter
+from PIL import Image, ImageTk
 import socket
 import threading
 import hashlib
 import json
 import time
-import subprocess
-import sys
 import receiver
 import sender
 
