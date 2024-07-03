@@ -6,7 +6,6 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import json
-from tkinter import *
 
 BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
