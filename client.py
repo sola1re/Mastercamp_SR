@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox, scrolledtext, PhotoImage
+from tkinter import messagebox, scrolledtext
 from PIL import Image, ImageTk
 import socket
 import threading
@@ -25,7 +25,7 @@ class LoginApp:
         self.root.iconbitmap("./file_interface/logo.ico")
         self.root.resizable(width=False, height=False)
         # self.root.configure(bg='#5d6e75')
-        self.bg = PhotoImage(file='./file_interface/back.png')
+        self.bg = tk.PhotoImage(file='./file_interface/back.png')
 
         # Créer un Label pour afficher l'image de fond
         self.bg_label = tk.Label(self.root, image=self.bg)
@@ -129,7 +129,7 @@ class JoinChannel:
         # self.root.configure(bg='#74abdc')
 
         # Charger l'image de fond
-        self.bg = PhotoImage(file='./file_interface/back2.png')
+        self.bg = tk.PhotoImage(file='./file_interface/back2.png')
 
         # Créer un Label pour afficher l'image de fond
         self.bg_label = tk.Label(self.root, image=self.bg)
@@ -231,7 +231,7 @@ class ChatApp:
         # self.root.configure(bg='#74abdc')
 
         # Charger l'image de fond
-        self.bg = PhotoImage(file='./file_interface/back.png')
+        self.bg = tk.PhotoImage(file='./file_interface/back.png')
 
         # Créer un Label pour afficher l'image de fond
         self.bg_label = tk.Label(self.root, image=self.bg)
