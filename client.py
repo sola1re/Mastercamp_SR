@@ -1,14 +1,11 @@
 import tkinter as tk
-from tkinter import messagebox, scrolledtext, PhotoImage
-from tkinter import *
-from PIL import Image, ImageTk, ImageFilter
+from tkinter import messagebox, scrolledtext
+from PIL import Image, ImageTk
 import socket
 import threading
 import hashlib
 import json
 import time
-import subprocess
-import sys
 import receiver
 import sender
 
@@ -28,10 +25,10 @@ class LoginApp:
         self.root.iconbitmap("./file_interface/logo.ico")
         self.root.resizable(width=False, height=False)
         # self.root.configure(bg='#5d6e75')
-        self.bg = PhotoImage(file='./file_interface/back.png')
+        self.bg = tk.PhotoImage(file='./file_interface/back.png')
 
         # Créer un Label pour afficher l'image de fond
-        self.bg_label = Label(self.root, image=self.bg)
+        self.bg_label = tk.Label(self.root, image=self.bg)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         # Frame pour le logo
@@ -132,10 +129,10 @@ class JoinChannel:
         # self.root.configure(bg='#74abdc')
 
         # Charger l'image de fond
-        self.bg = PhotoImage(file='./file_interface/back2.png')
+        self.bg = tk.PhotoImage(file='./file_interface/back2.png')
 
         # Créer un Label pour afficher l'image de fond
-        self.bg_label = Label(self.root, image=self.bg)
+        self.bg_label = tk.Label(self.root, image=self.bg)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         # Label et Entry pour le nom du canal
@@ -234,10 +231,10 @@ class ChatApp:
         # self.root.configure(bg='#74abdc')
 
         # Charger l'image de fond
-        self.bg = PhotoImage(file='./file_interface/back.png')
+        self.bg = tk.PhotoImage(file='./file_interface/back.png')
 
         # Créer un Label pour afficher l'image de fond
-        self.bg_label = Label(self.root, image=self.bg)
+        self.bg_label = tk.Label(self.root, image=self.bg)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         self.text_area = scrolledtext.ScrolledText(

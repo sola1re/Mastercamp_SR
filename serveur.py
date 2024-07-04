@@ -3,7 +3,6 @@ import threading
 import sqlite3
 import json
 import hashlib
-import time
 import os
 channels = {}
 

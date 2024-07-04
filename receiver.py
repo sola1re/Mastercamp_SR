@@ -1,7 +1,6 @@
 import socket
 import tkinter as tk
 from tkinter import messagebox, filedialog
-import os
 import json
 
 

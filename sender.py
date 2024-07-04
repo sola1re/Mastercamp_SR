@@ -5,10 +5,7 @@ import tqdm
 import tkinter as tk
 from tkinter import filedialog
 from tkinterdnd2 import DND_FILES, TkinterDnD
-import hashlib
 import json
-from tkinter import *
-from PIL import Image, ImageTk, ImageFilter
 
 BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
