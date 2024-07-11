@@ -1,6 +1,30 @@
 # File created using '.gitignore Generator' for Visual Studio Code: https://bit.ly/vscode-gig
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,git,intellij,intellij+all,intellij+iml,jupyternotebooks,macos,pycharm,pycharm+all,pycharm+iml,pydev,python,pythonvanilla,visualstudio,vs,windows
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,linux,git,intellij,intellij+all,intellij+iml,jupyternotebooks,macos,pycharm,pycharm+all,pycharm+iml,pydev,python,pythonvanilla,visualstudio,vs,windows
+# Created by https://www.toptal.com/developers/gitignore/api/windows,vs,visualstudiocode,visualstudio,pythonvanilla,python,pydev,pycharm+iml,pycharm+all,pycharm,macos,linux,jupyternotebooks,intellij+iml,intellij+all,intellij,git,data,database
+# Edit at https://www.toptal.com/developers/gitignore?templates=windows,vs,visualstudiocode,visualstudio,pythonvanilla,python,pydev,pycharm+iml,pycharm+all,pycharm,macos,linux,jupyternotebooks,intellij+iml,intellij+all,intellij,git,data,database
+
+### Data ###
+*.csv
+*.dat
+*.efx
+*.gbr
+*.key
+*.pps
+*.ppt
+*.pptx
+*.sdf
+*.tax2010
+*.vcf
+*.xml
+
+### Database ###
+*.accdb
+*.db
+*.dbf
+*.mdb
+*.pdb
+*.sqlite3
+*.db-shm
+*.db-wal
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:
@@ -783,7 +807,6 @@ StyleCopReport.xml
 *.obj
 *.iobj
 *.pch
-*.pdb
 *.ipdb
 *.pgc
 *.pgd
@@ -811,7 +834,6 @@ ipch/
 *.ncb
 *.opendb
 *.opensdf
-*.sdf
 *.cachefile
 *.VC.db
 *.VC.VC.opendb
@@ -1280,7 +1302,7 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
-# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,git,intellij,intellij+all,intellij+iml,jupyternotebooks,macos,pycharm,pycharm+all,pycharm+iml,pydev,python,pythonvanilla,visualstudio,vs,windows
+# End of https://www.toptal.com/developers/gitignore/api/windows,vs,visualstudiocode,visualstudio,pythonvanilla,python,pydev,pycharm+iml,pycharm+all,pycharm,macos,linux,jupyternotebooks,intellij+iml,intellij+all,intellij,git,data,database
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 
